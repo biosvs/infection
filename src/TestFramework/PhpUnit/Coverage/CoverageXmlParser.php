@@ -79,7 +79,10 @@ class CoverageXmlParser
         foreach ($nodes as $node) {
             $relativeFilePath = $node->getAttribute('href');
 
-            $coverage[] = $this->processXmlFileCoverage($relativeFilePath, $projectSource);
+            $res = $this->processXmlFileCoverage($relativeFilePath, $projectSource);
+            if ($res !== null) {
+                $coverage[] = $res;
+            }
         }
 
         return array_merge(...$coverage);
@@ -103,7 +106,7 @@ class CoverageXmlParser
      *
      * @throws \Exception
      */
-    private function processXmlFileCoverage(string $relativeCoverageFilePath, string $projectSource): array
+    private function processXmlFileCoverage(string $relativeCoverageFilePath, string $projectSource): ?array
     {
         $absolutePath = realpath($this->coverageDir . '/' . $relativeCoverageFilePath);
         $coverageFileXml = file_get_contents($absolutePath);
@@ -112,7 +115,11 @@ class CoverageXmlParser
         $dom->loadXML($this->removeNamespace($coverageFileXml));
         $xPath = new \DOMXPath($dom);
 
-        $sourceFilePath = $this->getSourceFilePath($xPath, $relativeCoverageFilePath, $projectSource);
+        try {
+            $sourceFilePath = $this->getSourceFilePath($xPath, $relativeCoverageFilePath, $projectSource);
+        } catch (\Exception $e) {
+            return null;
+        }
 
         $linesNode = $xPath->query('/phpunit/file/totals/lines')[0];
         $percentage = (float) $linesNode->getAttribute('percent');
