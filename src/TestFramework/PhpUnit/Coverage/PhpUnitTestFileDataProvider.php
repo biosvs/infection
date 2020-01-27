@@ -70,8 +70,11 @@ final class PhpUnitTestFileDataProvider implements TestFileDataProvider
             throw TestFileNameNotFoundException::notFoundFromFQN($fullyQualifiedClassName);
         }
 
+        $fileOldPath = $nodes[0]->getAttribute('file');
+        $fileNewPath = getcwd() . substr($fileOldPath, strpos($fileOldPath, '/tests/'));
+
         return new TestFileTimeData(
-            $nodes[0]->getAttribute('file'),
+            $fileNewPath,
             (float) $nodes[0]->getAttribute('time')
         );
     }

@@ -79,7 +79,11 @@ class CoverageXmlParser
         foreach ($nodes as $node) {
             $relativeFilePath = $node->getAttribute('href');
 
-            $coverage[] = $this->processXmlFileCoverage($relativeFilePath, $projectSource);
+            try {
+                $coverage[] = $this->processXmlFileCoverage($relativeFilePath, $projectSource);
+            } catch (\Exception $e) {
+                echo sprintf('Exception "%s" in %s:%d', $e->getMessage(), $e->getFile(), $e->getLine()) . PHP_EOL;
+            }
         }
 
         return array_merge(...$coverage);
@@ -168,6 +172,8 @@ class CoverageXmlParser
                     $relativeCoverageFilePath
             );
         }
+
+        $projectSource = getcwd() . '/app';
 
         $path = $projectSource . '/' . ltrim($relativeFilePath, '/') . '/' . $fileName;
         $realPath = realpath($path);
